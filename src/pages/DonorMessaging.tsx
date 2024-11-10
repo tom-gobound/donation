@@ -297,7 +297,7 @@ export default function DonorMessaging() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-0 py-8">
       <Link
         to={`/campaigns/${campaignId}`}
         className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6"
@@ -306,7 +306,7 @@ export default function DonorMessaging() {
         Back to Campaign
       </Link>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-md p-2 mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Message Donors</h1>
 
         <div className="mb-6">
@@ -338,7 +338,7 @@ export default function DonorMessaging() {
 
         <div className="space-y-6">
           {groupedDonors.map((group) => (
-            <div key={group.participantId} className="bg-gray-50 rounded-lg p-4">
+            <div key={group.participantId} className="bg-gray-50 rounded-lg p-2">
               <h3 className="font-medium text-gray-900 mb-3">
                 {group.participantName}
               </h3>
