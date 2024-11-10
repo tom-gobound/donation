@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthorized(campaignId) {
+      let campaign = get(/databases/$(database)/documents/campaigns/$(campaignId));
+      return request.auth != null && (
+        campaign.data.ownerId == request.auth.uid || 
+        campaign.data.facilitatorIds.hasAny([request.auth.uid])
+      );
+    }
+
+    function hasValidInvite(campaignId, inviteId) {
+      let invite = get(/databases/$(database)/documents/campaigns/$(campaignId)/invites/$(inviteId));
+      return invite != null && invite.data.status == 'pending';
+    }
+
+    match /userProfiles/{userId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    match /campaigns/{campaignId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if isAuthorized(campaignId) || 
+        (request.auth != null && hasValidInvite(campaignId, request.resource.data.inviteId));
+      allow delete: if isAuthorized(campaignId);
+      
+      match /invites/{inviteId} {
+        allow read: if true;
+        allow create: if request.auth != null && isAuthorized(campaignId);
+        allow update: if request.auth != null && (
+          request.resource.data.status == 'accepted' || 
+          request.resource.data.status == 'declined'
+        );
+        allow delete: if false;
+      }
+
+      match /messageTemplates/{userId}/{templateType}/{templateId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid == userId &&
+          isAuthorized(campaignId);
+      }
+      
+      match /participants/{participantId} {
+        allow read, write: if true;
+        
+        match /messages/{messageId} {
+          allow read, write: if true;
+        }
+        
+        match /guardians/{guardianId} {
+          allow read, write: if true;
+          
+          match /messages/{messageId} {
+            allow read, write: if true;
+          }
+        }
+        
+        match /donors/{donorId} {
+          allow read, write: if true;
+          
+          match /messages/{messageId} {
+            allow read, write: if true;
+          }
+        }
+
+        match /logs/{logId} {
+          allow read, write: if true;
+        }
+
+        match /accesses/{accessId} {
+          allow read, write: if true;
+        }
+      }
+    }
+  }
+}
